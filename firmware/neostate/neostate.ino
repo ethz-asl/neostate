@@ -1,3 +1,8 @@
+#ifdef ARDUINO_AVR_MICRO
+  // Required for Arduino Micro to work with rosserial
+  #define USE_USBCON
+#endif
+
 #include <ros.h>
 #include <neostate/StatusLEDArray.h>
 
