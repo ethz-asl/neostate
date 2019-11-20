@@ -1,5 +1,5 @@
 #include <ros.h>
-#include <mav_status_led/StatusLEDArray.h>
+#include <neostate/StatusLEDArray.h>
 
 #include <Adafruit_NeoPixel.h>
 
@@ -7,11 +7,7 @@
 // On a Trinket or Gemma we suggest changing this to 1:
 #define LED_PIN     6
 
-
-// Number of leds on array (will be changed by message later)
-const int num_pixels = 8;
-
-Adafruit_NeoPixel strip(num_pixels, LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip(8, LED_PIN, NEO_GRB + NEO_KHZ800);
 // Argument 3 = Pixel type flags, add together as needed:
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
@@ -19,20 +15,20 @@ Adafruit_NeoPixel strip(num_pixels, LED_PIN, NEO_GRB + NEO_KHZ800);
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 
 // Array indicating which leds should blink (if not blinking set to zero as off led cannot blink)
-uint32_t blinking_led_colors[num_pixels] = { 0 };
+uint32_t blinking_led_colors[8] = { 0 };
 
 // Time led stays on & off
 const uint32_t on_time = 100;
 const uint32_t off_time = 100;
 
 /* ----- ROS ----- */
-void messageCb( const mav_status_led::StatusLEDArray &msg){
-  // reset all values (blinking and not)
+void messageCb( const neostate::StatusLEDArray &msg){
+  // reset all led values (also blinking ones)
   strip.clear();
   memset(blinking_led_colors, 0, sizeof(blinking_led_colors));
 
   // loop through message and change led values one by one
-  for (int i=0; i == msg.LED_array_length - 1; ++i){
+  for (int i = 0; i < msg.LED_array_length && i < strip.numPixels(); i++){
     uint32_t new_color = strip.Color(msg.LED_array[i].red, msg.LED_array[i].green, msg.LED_array[i].blue);
     strip.setPixelColor(i, new_color);
     // define if led should be blinking
@@ -47,7 +43,7 @@ void messageCb( const mav_status_led::StatusLEDArray &msg){
 }
 
 ros::NodeHandle  nh;
-ros::Subscriber<mav_status_led::StatusLEDArray> sub("set_status_led_array", messageCb );
+ros::Subscriber<neostate::StatusLEDArray> sub("set_status_led_array", messageCb );
 
 void setup()
 {
@@ -85,7 +81,7 @@ void set_blinking_leds(){
   _ms = millis();  // reset timer
 
   // Change value of every pixel which is set to blinking
-  for(int i = 0; i < strip.numPixels(); ++i){
+  for(int i = 0; i < strip.numPixels(); i++){
       if(blinking_led_colors[i] != 0){
        if(!_on){
          strip.setPixelColor(i, blinking_led_colors[i]);
