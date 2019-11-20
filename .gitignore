@@ -1,5 +1,5 @@
 # Ros library
-libraries/ros_lib
+firmware/libraries/ros_lib
 
 # Prerequisites
 *.d
