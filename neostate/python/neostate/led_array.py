@@ -63,6 +63,8 @@ class LEDArray(object):
             status: status of led (on, blinking, off) to be set
             rgb_color: desired rgb value of led (zero if status is set to 0) 
         """
+        #TODO(clanegge): Check if anything has changed and only publish if yes.
+        #TODO(clanegge): Raise Error here
         try:
             if len(ids) is not len(status) is not len(rgb_color):
                 rospy.logwarn(
@@ -83,33 +85,41 @@ class LEDArray(object):
                 "[Piksi Status Indicator]: "
                 + "One of the passed arguments is not a list. Not changing LED status."
             )
+            return
 
-            for id, stat_val, color in zip(ids, status, rgb_color):
-                self.__led_status[id] = stat_val
-                if stat_val is not 0:
-                    self.__led_colors[id] = color
-                else:
-                    # turn off led
-                    self.__led_colors[id] = [0, 0, 0]
+        for id, stat_val, color in zip(ids, status, rgb_color):
+            self.__led_status[id] = stat_val
+            if stat_val is not 0:
+                self.__led_colors[id] = color
+            else:
+                # turn off led
+                self.__led_colors[id] = [0, 0, 0]
+    
+    def turn_off_all_leds(self):
+        """Turn all LEDs to off"""
+        self.__led_status = [0] * self.__num_of_leds
+        self.__led_colors = [[0, 0, 0]] * self.__num_of_leds
+        self.publish_led_status()
+        
+    def publish_led_status(self):
+        """Publish new status of LEDs.
 
-        def publish_led_status(self):
-            """Publish new status of LEDs.
+        This method should only be called if new led status or color has been set.
+        """
+        msg = StatusLEDArray()
 
-            This method should only be called if new led status or color has been set.
-            """
-            msg = StatusLEDArray()
+        for status, color in zip(self.__led_status, self.__led_colors):
+            led_stat_msg = StatusLED()
+            led_stat_msg.red = color[0]
+            led_stat_msg.green = color[1]
+            led_stat_msg.blue = color[2]
+            # Led specific frequency not implemented yet,
+            # therefore just blinking or not
+            if status > 0:
+                led_stat_msg.blinking = True
+            else:
+                led_stat_msg.blinking = False
+            msg.LED_array.append(led_stat_msg)
 
-            for status, color in zip(self.__led_status, self.__led_colors):
-                led_stat_msg = StatusLED()
-                led_stat_msg.red = color[0]
-                led_stat_msg.green = color[1]
-                led_stat_msg.blue = color[2]
-                # Led specific frequency not implemented yet,
-                # therefore just blinking or not
-                if status > 0:
-                    led_stat_msg.blinking = True
-                else:
-                    led_stat_msg.blinking = False
-                msg.LED_array.append(led_stat_msg)
+        self.__msg_pub.publish(msg)
 
-            self.__msg_pub.publish(msg)
