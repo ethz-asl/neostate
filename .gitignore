@@ -9,6 +9,7 @@ firmware/libraries/ros_lib
 *.lo
 *.o
 *.obj
+*.pyc
 
 # Precompiled Headers
 *.gch
