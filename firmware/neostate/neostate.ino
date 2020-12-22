@@ -4,7 +4,7 @@
 #endif
 
 #include <ros.h>
-#include <neostate/StatusLEDArray.h>
+#include <neostate_msgs/StatusLEDArray.h>
 
 #include <Adafruit_NeoPixel.h>
 
@@ -12,7 +12,7 @@
 // On a Trinket or Gemma we suggest changing this to 1:
 #define LED_PIN     6
 
-Adafruit_NeoPixel strip(8, LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip(12, LED_PIN, NEO_GRB + NEO_KHZ800);
 // Argument 3 = Pixel type flags, add together as needed:
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
@@ -20,14 +20,14 @@ Adafruit_NeoPixel strip(8, LED_PIN, NEO_GRB + NEO_KHZ800);
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 
 // Array indicating which leds should blink (if not blinking set to zero as off led cannot blink)
-uint32_t blinking_led_colors[8] = { 0 };
+uint32_t blinking_led_colors[12] = { 0 };
 
 // Time led stays on & off
 const uint32_t on_time = 100;
 const uint32_t off_time = 100;
 
 /* ----- ROS ----- */
-void messageCb( const neostate::StatusLEDArray &msg){
+void messageCb( const neostate_msgs::StatusLEDArray &msg){
   // reset all led values (also blinking ones)
   strip.clear();
   memset(blinking_led_colors, 0, sizeof(blinking_led_colors));
@@ -48,7 +48,7 @@ void messageCb( const neostate::StatusLEDArray &msg){
 }
 
 ros::NodeHandle  nh;
-ros::Subscriber<neostate::StatusLEDArray> sub("set_status_led_array", messageCb );
+ros::Subscriber<neostate_msgs::StatusLEDArray> sub("set_status_led_array", messageCb );
 
 void setup()
 {
